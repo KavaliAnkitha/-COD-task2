@@ -1,0 +1,101 @@
+# Define board and player markers
+board = [' ' for _ in range(9)]
+player = 'X'
+opponent = 'O'
+
+# Function to display the board
+def display_board(board):
+  for i in range(3):
+    print('|', board[i*3], '|', board[i*3 + 1], '|', board[i*3 + 2], '|')
+
+# Function to check if a space is empty
+def is_empty(pos):
+  return board[pos] == ' '
+
+# Function to check if a player has won
+def has_won(player):
+  win_conditions = ((0, 1, 2), (3, 4, 5), (6, 7, 8), (0, 3, 6), (1, 4, 7), (2, 5, 8), (0, 4, 8), (2, 4, 6))
+  for condition in win_conditions:
+    if all(board[pos] == player for pos in condition):
+      return True
+  return False
+
+# Minimax algorithm to determine the best move
+def minimax(depth, is_maximizing):
+  # Check if the game is over
+  if has_won(player):
+    return 1
+  elif has_won(opponent):
+    return -1
+  elif all(cell != ' ' for cell in board):
+    return 0
+
+  # Evaluate score for maximizing player
+  if is_maximizing:
+    best_score = -float('inf')
+    for i in range(len(board)):
+      if is_empty(i):
+        board[i] = player
+        score = minimax(depth + 1, False)
+        board[i] = ' '  # Backtrack
+        best_score = max(best_score, score)
+    return best_score
+  
+  # Evaluate score for minimizing player
+  else:
+    best_score = float('inf')
+    for i in range(len(board)):
+      if is_empty(i):
+        board[i] = opponent
+        score = minimax(depth + 1, True)
+        board[i] = ' '  # Backtrack
+        best_score = min(best_score, score)
+    return best_score
+
+# Function to get the best move for the AI
+def get_ai_move():
+  best_score = -float('inf')
+  best_move = None
+  for i in range(len(board)):
+    if is_empty(i):
+      board[i] = player
+      score = minimax(0, False)
+      board[i] = ' '  # Backtrack
+      if score > best_score:
+        best_score = score
+        best_move = i
+  return best_move
+
+# Main game loop
+while True:
+  display_board(board)
+
+  # Get human player move
+  while True:
+    try:
+      human_move = int(input("Enter your move (1-9): ")) - 1
+      if 0 <= human_move <= 8 and is_empty(human_move):
+        break
+      else:
+        print("Invalid move. Try again.")
+    except ValueError:
+      print("Invalid input. Please enter a number between 1 and 9.")
+
+  board[human_move] = player
+
+  # Check for win or draw
+  if has_won(player):
+    print("You win!")
+    break
+  elif all(cell != ' ' for cell in board):
+    print("It's a draw!")
+    break
+
+  # AI makes its move
+  ai_move = get_ai_move()
+  board[ai_move] = opponent
+
+  # Switch players
+  player, opponent = opponent, player
+
+print("Thanks for playing!")
